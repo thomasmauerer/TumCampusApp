@@ -26,20 +26,6 @@ import de.tum.in.tumcampus.R;
 public class OpeningHoursListFragment extends ListFragment {
 
 	/**
-	 * A callback interface that all activities containing this fragment must
-	 * implement. This mechanism allows activities to be notified of item
-	 * selections.
-	 */
-	public interface Callbacks {
-		/**
-		 * Callback for when an item has been selected.
-         * @param pos Index of the item
-         * @param name Name of the item
-         */
-		public void onItemSelected(int pos, String name);
-	}
-
-	/**
 	 * A dummy implementation of the {@link Callbacks} interface that does
 	 * nothing. Used only when this fragment is not attached to an activity.
 	 */
@@ -48,18 +34,15 @@ public class OpeningHoursListFragment extends ListFragment {
 		public void onItemSelected(int id, String name) {
 		}
 	};
-
 	/**
 	 * The serialization (saved instance state) Bundle key representing the
 	 * activated item position. Only used on tablets.
 	 */
 	private static final String STATE_ACTIVATED_POSITION = "activated_position";
-
 	/**
 	 * The current activated item position. Only used on tablets.
 	 */
 	private int mActivatedPosition = ListView.INVALID_POSITION;
-
 	/**
 	 * The fragment's current callback object, which is notified of list item
 	 * clicks.
@@ -92,13 +75,13 @@ public class OpeningHoursListFragment extends ListFragment {
 		int layout = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) ? android.R.layout.simple_list_item_activated_1
 				: android.R.layout.simple_list_item_1;
 
-		String[] names = new String[] { getString(R.string.libraries),
+		String[] names = new String[]{getString(R.string.libraries),
 				getString(R.string.information),
 				getString(R.string.mensa_garching),
 				getString(R.string.mensa_grosshadern),
 				getString(R.string.mensa_city),
 				getString(R.string.mensa_pasing),
-				getString(R.string.mensa_weihenstephan) };
+				getString(R.string.mensa_weihenstephan)};
 
 		setListAdapter(new ArrayAdapter<>(getActivity(), layout, android.R.id.text1, names));
 	}
@@ -117,7 +100,7 @@ public class OpeningHoursListFragment extends ListFragment {
 
 		// Notify the active callbacks interface (the activity, if the
 		// fragment is attached to one) that an item has been selected.
-        final ListAdapter adapter = getListAdapter();
+		final ListAdapter adapter = getListAdapter();
 		mCallbacks.onItemSelected(position, adapter.getItem(position).toString());
 	}
 
@@ -160,5 +143,20 @@ public class OpeningHoursListFragment extends ListFragment {
 		getListView().setChoiceMode(
 				activateOnItemClick ? AbsListView.CHOICE_MODE_SINGLE
 						: AbsListView.CHOICE_MODE_NONE);
+	}
+
+	/**
+	 * A callback interface that all activities containing this fragment must
+	 * implement. This mechanism allows activities to be notified of item
+	 * selections.
+	 */
+	public interface Callbacks {
+		/**
+		 * Callback for when an item has been selected.
+		 *
+		 * @param pos  Index of the item
+		 * @param name Name of the item
+		 */
+		void onItemSelected(int pos, String name);
 	}
 }

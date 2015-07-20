@@ -25,7 +25,7 @@ public class SmartAlarmReceiver extends BroadcastReceiver {
     public static final String ACTION_TOGGLE = "de.tum.in.tumcampus.widget.SmartAlarmWidgetProvider.action.TOGGLE";
     public static final String ACTION_ALARM = "de.tum.in.tumcampus.widget.SmartAlarmWidgetProvider.action.ALARM";
     public static final String ACTION_PREALARM = "de.tum.in.tumcampus.widget.SmartAlarmWidgetProvider.action.PREALARM";
-    public static final String ACTION_RETRY = "de.tum.in.tumcampus.widget.SmartAlarmWidgetProvider.action.RETRY";;
+    public static final String ACTION_RETRY = "de.tum.in.tumcampus.widget.SmartAlarmWidgetProvider.action.RETRY";
 
     @Override
     public void onReceive(Context context, Intent intent) {

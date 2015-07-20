@@ -59,20 +59,18 @@ import static com.nineoldandroids.view.ViewPropertyAnimator.animate;
  * clicks, etc.
  */
 public final class SwipeDismissList implements View.OnTouchListener {
-	
+
+	// Transient properties
+	private final SortedSet<PendingDismissData> mPendingDismisses = new TreeSet<>();
 	// Cached ViewConfiguration and system-wide constant values
 	private int mSlop;
 	private int mMinFlingVelocity;
 	private int mMaxFlingVelocity;
 	private long mAnimationTime;
-	
 	// Fixed properties
 	private AbsListView mListView;
 	private OnDismissCallback mCallback;
 	private int mViewWidth = 1; // 1 and not 0 to prevent dividing by zero
-	
-	// Transient properties
-	private final SortedSet<PendingDismissData> mPendingDismisses = new TreeSet<>();
 	private int mDismissAnimationRefCount = 0;
 	private float mDownX;
 	private boolean mSwiping;
@@ -99,101 +97,14 @@ public final class SwipeDismissList implements View.OnTouchListener {
 	private int mDelayedMsgId;
 
 	/**
-	 * Defines the mode a {@link de.tum.in.tumcampus.auxiliary.SwipeDismissList} handles multiple undos.
-	 */
-	public enum UndoMode {
-		/**
-		 * Only give the user the possibility to undo the last action.
-		 * As soon as another item is deleted, there is no chance to undo
-		 * the previous deletion.
-		 */
-		SINGLE_UNDO,
-
-		/**
-		 * Give the user the possibility to undo multiple deletions one by one.
-		 * Every click on Undo will undo the previous deleted item. Undos will be
-		 * collected as long as the undo popup stays open. As soon as the popup
-		 * vanished (because {@link #setAutoHideDelay(int) autoHideDelay} is over)
-		 * all saved undos will be discarded.
-		 */
-		MULTI_UNDO,
-
-		/**
-		 * Give the user the possibility to undo multiple deletions all together.
-		 * As long as the popup stays open all further deletions will be collected.
-		 * A click on the undo button will undo ALL deletions saved. As soon as
-		 * the popup vanished (because {@link #setAutoHideDelay(int) autoHideDelay}
-		 * is over) all saved undos will be discarded.
-		 */
-		COLLAPSED_UNDO
-	}
-
-	/**
-	 * The callback interface used to inform the client about a successful
-     * dismissal of one or more list item positions.
-	 */
-	public interface OnDismissCallback {
-
-		/**
-		 * Called when the user has indicated they she would like to dismiss one
-		 * or more list item positions.
-		 *
-		 * @param listView The originating {@link android.widget.ListView}.
-		 * @param position The position of the item to dismiss.
-		 */
-        @SuppressWarnings("UnusedParameters")
-        Undoable onDismiss(AbsListView listView, int position);
-	}
-
-	/**
-	 * An implementation of this abstract class must be returned by the 
-	 * {@link de.tum.in.tumcampus.auxiliary.SwipeDismissList.OnDismissCallback#onDismiss(android.widget.AbsListView, int)} method,
-	 * if the user should be able to undo that dismiss. If the action will be undone
-	 * by the user {@link #undo()} will be called. That method should undo the previous
-	 * deletion of the item and add it back to the adapter. Read the README file for
-	 * more details. If you implement the {@link #getTitle()} method, the undo popup
-	 * will show an individual title for that item. Otherwise the default title 
-	 * (set via {@link #setUndoString(String)}) will be shown.
-	 */
-	public abstract static class Undoable {
-
-		/**
-		 * Returns the individual undo message for this item shown in the
-		 * popup dialog.
-		 * 
-		 * @return The individual undo message.
-		 */
-		public String getTitle() {
-			return null;
-		}
-
-		/**
-		 * Undoes the deletion.
-		 */
-		public abstract void undo();
-
-		/**
-		 * Will be called when this Undoable won't be able to undo anymore,
-		 * meaning the undo popup has disappeared from the screen.
-		 */
-		public void discard() { }
-		
-	}
-
-
-    public interface SwipeDismissDiscardable {
-        public boolean isDismissable(int pos);
-    }
-
-	/**
 	 * Constructs a new swipe-to-dismiss touch listener for the given list view.
 	 * @param listView The list view whose items should be dismissable.
 	 * @param callback The callback to trigger when the user has indicated that
 	 * she would like to dismiss one or more list items.
-     */
+	 */
 	public SwipeDismissList(AbsListView listView, OnDismissCallback callback) {
 
-		if(listView == null) {
+		if (listView == null) {
 			throw new IllegalArgumentException("listview must not be null.");
 		}
 
@@ -201,20 +112,20 @@ public final class SwipeDismissList implements View.OnTouchListener {
 		mListView = listView;
 		mCallback = callback;
 		mMode = UndoMode.MULTI_UNDO;
-		
+
 		ViewConfiguration vc = ViewConfiguration.get(listView.getContext());
 		mSlop = vc.getScaledTouchSlop();
 		mMinFlingVelocity = vc.getScaledMinimumFlingVelocity();
 		mMaxFlingVelocity = vc.getScaledMaximumFlingVelocity();
 		mAnimationTime = listView.getContext().getResources().getInteger(
-			android.R.integer.config_shortAnimTime);
+				android.R.integer.config_shortAnimTime);
 
 		mDensity = mListView.getResources().getDisplayMetrics().density;
 
 		// -- Load undo popup --
 		LayoutInflater inflater = (LayoutInflater) mListView.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		View v = inflater.inflate(R.layout.undo_popup, null);
-		mUndoButton = (Button)v.findViewById(R.id.undo);
+		mUndoButton = (Button) v.findViewById(R.id.undo);
 		mUndoButton.setOnClickListener(new UndoHandler());
 		mUndoButton.setOnTouchListener(new View.OnTouchListener() {
 			public boolean onTouch(View v, MotionEvent event) {
@@ -223,28 +134,28 @@ public final class SwipeDismissList implements View.OnTouchListener {
 				return false;
 			}
 		});
-		mUndoText = (TextView)v.findViewById(R.id.text);
-		
+		mUndoText = (TextView) v.findViewById(R.id.text);
+
 		mUndoPopup = new PopupWindow(v);
 		mUndoPopup.setAnimationStyle(R.style.fade_animation);
-        // Get scren width in dp and set width respectively
-        int xdensity = (int)(mListView.getContext().getResources().getDisplayMetrics().widthPixels / mDensity);
-        if(xdensity < 300) {
-    		mUndoPopup.setWidth((int)(mDensity * 280));
-        } else if(xdensity < 350) {
-            mUndoPopup.setWidth((int)(mDensity * 300));
-        } else if(xdensity < 500) {
-            mUndoPopup.setWidth((int)(mDensity * 330));
-        } else {
-            mUndoPopup.setWidth((int)(mDensity * 450));
-        }
-		mUndoPopup.setHeight((int)(mDensity * 56));
+		// Get scren width in dp and set width respectively
+		int xdensity = (int) (mListView.getContext().getResources().getDisplayMetrics().widthPixels / mDensity);
+		if (xdensity < 300) {
+			mUndoPopup.setWidth((int) (mDensity * 280));
+		} else if (xdensity < 350) {
+			mUndoPopup.setWidth((int) (mDensity * 300));
+		} else if (xdensity < 500) {
+			mUndoPopup.setWidth((int) (mDensity * 330));
+		} else {
+			mUndoPopup.setWidth((int) (mDensity * 450));
+		}
+		mUndoPopup.setHeight((int) (mDensity * 56));
 		// -- END Load undo popu --
 
 		listView.setOnTouchListener(this);
 		listView.setOnScrollListener(this.makeScrollListener());
 
-		switch(UndoMode.MULTI_UNDO) {
+		switch (UndoMode.MULTI_UNDO) {
 			case SINGLE_UNDO:
 				mUndoActions = new ArrayList<>(1);
 				break;
@@ -266,9 +177,9 @@ public final class SwipeDismissList implements View.OnTouchListener {
 	}
 
 	/**
-	 * Sets the time in milliseconds after which the undo popup automatically 
+	 * Sets the time in milliseconds after which the undo popup automatically
 	 * disappears.
-	 * 
+	 *
 	 * @param delay Delay in milliseconds.
 	 */
 	public void setAutoHideDelay(int delay) {
@@ -279,7 +190,7 @@ public final class SwipeDismissList implements View.OnTouchListener {
 	 * Sets the string shown in the undo popup. This will only show if
 	 * the {@link de.tum.in.tumcampus.auxiliary.SwipeDismissList.Undoable} returned by the {@link de.tum.in.tumcampus.auxiliary.SwipeDismissList.OnDismissCallback} returns
 	 * {@code null} from its {@link de.tum.in.tumcampus.auxiliary.SwipeDismissList.Undoable#getTitle()} method.
-	 * 
+	 *
 	 * @param msg The string shown in the undo popup.
 	 */
 	public void setUndoString(String msg) {
@@ -297,35 +208,35 @@ public final class SwipeDismissList implements View.OnTouchListener {
 	public void setUndoMultipleString(String msg) {
 		mDeleteMultipleString = msg;
 	}
-	
+
 	/**
 	 * Sets whether another touch on the view is required before the popup counts down to
 	 * dismiss. By default this is set to true.
-	 * 
+	 *
 	 * @param require Whether a touch is required before starting the auto-dismiss timer.
 	 */
 	public void setRequireTouchBeforeDismiss(boolean require) {
 		mTouchBeforeAutoHide = require;
 	}
 
-    /**
-     * Discard all stored undos and hide the undo popup dialog.
-     */
-    public void discardUndo() {
-        for(Undoable undoable : mUndoActions) {
-            undoable.discard();
-        }
-        mUndoActions.clear();
-        mUndoPopup.dismiss();
-    }
+	/**
+	 * Discard all stored undos and hide the undo popup dialog.
+	 */
+	public void discardUndo() {
+		for (Undoable undoable : mUndoActions) {
+			undoable.discard();
+		}
+		mUndoActions.clear();
+		mUndoPopup.dismiss();
+	}
 
-    /**
-     * Clears the undo actions list without discarding
-     */
-    public void cancelUndo() {
-        mUndoActions.clear();
-        mUndoPopup.dismiss();
-    }
+	/**
+	 * Clears the undo actions list without discarding
+	 */
+	public void cancelUndo() {
+		mUndoActions.clear();
+		mUndoPopup.dismiss();
+	}
 
 	/**
 	 * Returns an {@link android.widget.AbsListView.OnScrollListener} to be
@@ -353,7 +264,7 @@ public final class SwipeDismissList implements View.OnTouchListener {
 		if (this.mSwipeDisabled) {
 			return false;
 		}
-				
+
 		if (mViewWidth < 2) {
 			mViewWidth = mListView.getWidth();
 		}
@@ -363,11 +274,11 @@ public final class SwipeDismissList implements View.OnTouchListener {
 				if (mPaused) {
 					return false;
 				}
-                mVelocityTracker = null;
-                mDownX = 0;
-                mDownView = null;
-                mDownPosition = ListView.INVALID_POSITION;
-                mSwiping = false;
+				mVelocityTracker = null;
+				mDownX = 0;
+				mDownView = null;
+				mDownPosition = ListView.INVALID_POSITION;
+				mSwiping = false;
 
 				// Find the child view that was touched (perform a hit test)
 				Rect rect = new Rect();
@@ -377,7 +288,7 @@ public final class SwipeDismissList implements View.OnTouchListener {
 				int x = (int) motionEvent.getRawX() - listViewCoordinates[0];
 				int y = (int) motionEvent.getRawY() - listViewCoordinates[1];
 				View child;
-                int i;
+				int i;
 				for (i = 0; i < childCount; i++) {
 					child = mListView.getChildAt(i);
 					child.getHitRect(rect);
@@ -386,19 +297,19 @@ public final class SwipeDismissList implements View.OnTouchListener {
 						break;
 					}
 				}
-                i+=mListView.getFirstVisiblePosition();
+				i += mListView.getFirstVisiblePosition();
 
-                // Check if item is dismissable
-                if(mDownView != null) {
-                    ListAdapter adapter = mListView.getAdapter();
-                    if(adapter instanceof SwingBottomInAnimationAdapter) {
-                        adapter = ((SwingBottomInAnimationAdapter) adapter).getDecoratedBaseAdapter();
-                        if (adapter instanceof SwipeDismissDiscardable) {
-                            if (!((SwipeDismissDiscardable) adapter).isDismissable(i))
-                                mDownView = null;
-                        }
-                    }
-                }
+				// Check if item is dismissable
+				if (mDownView != null) {
+					ListAdapter adapter = mListView.getAdapter();
+					if (adapter instanceof SwingBottomInAnimationAdapter) {
+						adapter = ((SwingBottomInAnimationAdapter) adapter).getDecoratedBaseAdapter();
+						if (adapter instanceof SwipeDismissDiscardable) {
+							if (!((SwipeDismissDiscardable) adapter).isDismissable(i))
+								mDownView = null;
+						}
+					}
+				}
 
 				if (mDownView != null) {
 					mDownX = motionEvent.getRawX();
@@ -427,7 +338,7 @@ public final class SwipeDismissList implements View.OnTouchListener {
 					dismiss = true;
 					dismissRight = deltaX > 0;
 				} else if (mMinFlingVelocity <= velocityX && velocityX <= mMaxFlingVelocity
-					&& velocityY < velocityX && mSwiping && deltaX >= mViewWidth * 0.2f) {
+						&& velocityY < velocityX && mSwiping && deltaX >= mViewWidth * 0.2f) {
 					dismiss = true;
 					dismissRight = mVelocityTracker.getXVelocity() > 0;
 				}
@@ -437,33 +348,33 @@ public final class SwipeDismissList implements View.OnTouchListener {
 					final int downPosition = mDownPosition;
 					++mDismissAnimationRefCount;
 					animate(mDownView)
-						.translationX(dismissRight ? mViewWidth : -mViewWidth)
-						.alpha(0)
-						.setDuration(mAnimationTime)
-						.setListener(new AnimatorListenerAdapter() {
-						@Override
-						public void onAnimationEnd(Animator animation) {
-							performDismiss(downView, downPosition);
-						}
-					});
+							.translationX(dismissRight ? mViewWidth : -mViewWidth)
+							.alpha(0)
+							.setDuration(mAnimationTime)
+							.setListener(new AnimatorListenerAdapter() {
+								@Override
+								public void onAnimationEnd(Animator animation) {
+									performDismiss(downView, downPosition);
+								}
+							});
 				} else {
 					// cancel
 					animate(mDownView)
-						.translationX(0)
-						.alpha(1)
-						.setDuration(mAnimationTime)
-						.setListener(null);
+							.translationX(0)
+							.alpha(1)
+							.setDuration(mAnimationTime)
+							.setListener(null);
 				}
 				break;
 			}
 
 			case MotionEvent.ACTION_MOVE: {
-				if(mTouchBeforeAutoHide && mUndoPopup.isShowing()) {	
+				if (mTouchBeforeAutoHide && mUndoPopup.isShowing()) {
 					// Send a delayed message to hide popup
-					mHandler.sendMessageDelayed(mHandler.obtainMessage(mDelayedMsgId), 
-						mAutoHideDelay);
+					mHandler.sendMessageDelayed(mHandler.obtainMessage(mDelayedMsgId),
+							mAutoHideDelay);
 				}
-				
+
 				if (mVelocityTracker == null || mPaused) {
 					break;
 				}
@@ -471,45 +382,28 @@ public final class SwipeDismissList implements View.OnTouchListener {
 				mVelocityTracker.addMovement(motionEvent);
 				float deltaX = motionEvent.getRawX() - mDownX;
 
-                if (Math.abs(deltaX) > mSlop) {
-                    mSwiping = true;
-                    mListView.requestDisallowInterceptTouchEvent(true);
+				if (Math.abs(deltaX) > mSlop) {
+					mSwiping = true;
+					mListView.requestDisallowInterceptTouchEvent(true);
 
-                    // Cancel ListView's touch (un-highlighting the item)
-                    MotionEvent cancelEvent = MotionEvent.obtain(motionEvent);
-                    cancelEvent.setAction(MotionEvent.ACTION_CANCEL
-                        | (motionEvent.getActionIndex()
-                        << MotionEvent.ACTION_POINTER_INDEX_SHIFT));
-                    mListView.onTouchEvent(cancelEvent);
-                }
+					// Cancel ListView's touch (un-highlighting the item)
+					MotionEvent cancelEvent = MotionEvent.obtain(motionEvent);
+					cancelEvent.setAction(MotionEvent.ACTION_CANCEL
+							| (motionEvent.getActionIndex()
+							<< MotionEvent.ACTION_POINTER_INDEX_SHIFT));
+					mListView.onTouchEvent(cancelEvent);
+				}
 
 				if (mSwiping) {
 					setTranslationX(mDownView, deltaX);
 					setAlpha(mDownView, Math.max(0f, Math.min(1f,
-						1f - Math.abs(deltaX) / mViewWidth)));//2f *
+							1f - Math.abs(deltaX) / mViewWidth)));//2f *
 					return true;
 				}
 				break;
 			}
 		}
 		return false;
-	}
-
-	class PendingDismissData implements Comparable<PendingDismissData> {
-
-		public final int position;
-		public final View view;
-
-		public PendingDismissData(int position, View view) {
-			this.position = position;
-			this.view = view;
-		}
-
-		@Override
-		public int compareTo(@NonNull PendingDismissData other) {
-			// Sort by descending position
-			return other.position - position;
-		}
 	}
 
 	private void performDismiss(final View dismissView, final int dismissPosition) {
@@ -529,34 +423,34 @@ public final class SwipeDismissList implements View.OnTouchListener {
 				if (mDismissAnimationRefCount == 0) {
 					// No active animations, process all pending dismisses.
 
-					for(PendingDismissData dismiss : mPendingDismisses) {
-						if(mMode == UndoMode.SINGLE_UNDO) {
-							for(Undoable undoable : mUndoActions) {
+					for (PendingDismissData dismiss : mPendingDismisses) {
+						if (mMode == UndoMode.SINGLE_UNDO) {
+							for (Undoable undoable : mUndoActions) {
 								undoable.discard();
 							}
 							mUndoActions.clear();
 						}
 						Undoable undoable = mCallback.onDismiss(mListView, dismiss.position);
-						if(undoable != null) {
+						if (undoable != null) {
 							mUndoActions.add(undoable);
 						}
 						mDelayedMsgId++;
 					}
 
-					if(!mUndoActions.isEmpty()) {
+					if (!mUndoActions.isEmpty()) {
 						changePopupText();
 						changeButtonLabel();
 
 						// Show undo popup
-						mUndoPopup.showAtLocation(mListView, 
-							Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM,
-							0, (int)(mDensity * 15));
-						
+						mUndoPopup.showAtLocation(mListView,
+								Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM,
+								0, (int) (mDensity * 15));
+
 						// Queue the dismiss only if required
-						if(!mTouchBeforeAutoHide) {	
+						if (!mTouchBeforeAutoHide) {
 							// Send a delayed message to hide popup
-							mHandler.sendMessageDelayed(mHandler.obtainMessage(mDelayedMsgId), 
-								mAutoHideDelay);
+							mHandler.sendMessageDelayed(mHandler.obtainMessage(mDelayedMsgId),
+									mAutoHideDelay);
 						}
 					}
 
@@ -592,12 +486,12 @@ public final class SwipeDismissList implements View.OnTouchListener {
 	 */
 	private void changePopupText() {
 		String msg = "";
-		if(mUndoActions.size() > 1 && mDeleteMultipleString != null) {
+		if (mUndoActions.size() > 1 && mDeleteMultipleString != null) {
 			msg = String.format(mDeleteMultipleString, mUndoActions.size());
-		} else if(mUndoActions.size() >= 1) {
+		} else if (mUndoActions.size() >= 1) {
 			// Set title from single undoable or when no multiple deletion string
 			// is given
-			if(mUndoActions.get(mUndoActions.size() - 1).getTitle() != null) {
+			if (mUndoActions.get(mUndoActions.size() - 1).getTitle() != null) {
 				msg = mUndoActions.get(mUndoActions.size() - 1).getTitle();
 			} else {
 				msg = mDeleteString;
@@ -608,7 +502,7 @@ public final class SwipeDismissList implements View.OnTouchListener {
 
 	private void changeButtonLabel() {
 		String msg;
-		if(mUndoActions.size() > 1 && mMode == UndoMode.COLLAPSED_UNDO) {
+		if (mUndoActions.size() > 1 && mMode == UndoMode.COLLAPSED_UNDO) {
 			msg = mListView.getResources().getString(R.string.undoall);
 		} else {
 			msg = mListView.getResources().getString(R.string.undo);
@@ -617,22 +511,133 @@ public final class SwipeDismissList implements View.OnTouchListener {
 	}
 
 	/**
-	 * Takes care of undoing a dismiss. This will be added as a 
+	 * Enable/disable swipe.
+	 */
+	public void setSwipeDisabled(boolean disabled) {
+		this.mSwipeDisabled = disabled;
+	}
+
+	/**
+	 * Defines the mode a {@link de.tum.in.tumcampus.auxiliary.SwipeDismissList} handles multiple undos.
+	 */
+	public enum UndoMode {
+		/**
+		 * Only give the user the possibility to undo the last action.
+		 * As soon as another item is deleted, there is no chance to undo
+		 * the previous deletion.
+		 */
+		SINGLE_UNDO,
+
+		/**
+		 * Give the user the possibility to undo multiple deletions one by one.
+		 * Every click on Undo will undo the previous deleted item. Undos will be
+		 * collected as long as the undo popup stays open. As soon as the popup
+		 * vanished (because {@link #setAutoHideDelay(int) autoHideDelay} is over)
+		 * all saved undos will be discarded.
+		 */
+		MULTI_UNDO,
+
+		/**
+		 * Give the user the possibility to undo multiple deletions all together.
+		 * As long as the popup stays open all further deletions will be collected.
+		 * A click on the undo button will undo ALL deletions saved. As soon as
+		 * the popup vanished (because {@link #setAutoHideDelay(int) autoHideDelay}
+		 * is over) all saved undos will be discarded.
+		 */
+		COLLAPSED_UNDO
+	}
+
+	/**
+	 * The callback interface used to inform the client about a successful
+	 * dismissal of one or more list item positions.
+	 */
+	public interface OnDismissCallback {
+
+		/**
+		 * Called when the user has indicated they she would like to dismiss one
+		 * or more list item positions.
+		 *
+		 * @param listView The originating {@link android.widget.ListView}.
+		 * @param position The position of the item to dismiss.
+		 */
+		@SuppressWarnings("UnusedParameters")
+		Undoable onDismiss(AbsListView listView, int position);
+	}
+
+	public interface SwipeDismissDiscardable {
+		boolean isDismissable(int pos);
+	}
+
+	/**
+	 * An implementation of this abstract class must be returned by the
+	 * {@link de.tum.in.tumcampus.auxiliary.SwipeDismissList.OnDismissCallback#onDismiss(android.widget.AbsListView, int)} method,
+	 * if the user should be able to undo that dismiss. If the action will be undone
+	 * by the user {@link #undo()} will be called. That method should undo the previous
+	 * deletion of the item and add it back to the adapter. Read the README file for
+	 * more details. If you implement the {@link #getTitle()} method, the undo popup
+	 * will show an individual title for that item. Otherwise the default title
+	 * (set via {@link #setUndoString(String)}) will be shown.
+	 */
+	public abstract static class Undoable {
+
+		/**
+		 * Returns the individual undo message for this item shown in the
+		 * popup dialog.
+		 *
+		 * @return The individual undo message.
+		 */
+		public String getTitle() {
+			return null;
+		}
+
+		/**
+		 * Undoes the deletion.
+		 */
+		public abstract void undo();
+
+		/**
+		 * Will be called when this Undoable won't be able to undo anymore,
+		 * meaning the undo popup has disappeared from the screen.
+		 */
+		public void discard() {
+		}
+
+	}
+
+	class PendingDismissData implements Comparable<PendingDismissData> {
+
+		public final int position;
+		public final View view;
+
+		public PendingDismissData(int position, View view) {
+			this.position = position;
+			this.view = view;
+		}
+
+		@Override
+		public int compareTo(@NonNull PendingDismissData other) {
+			// Sort by descending position
+			return other.position - position;
+		}
+	}
+
+	/**
+	 * Takes care of undoing a dismiss. This will be added as a
 	 * {@link android.view.View.OnClickListener} to the undo button in the undo popup.
 	 */
 	private class UndoHandler implements View.OnClickListener {
 
 		public void onClick(View v) {
-			if(!mUndoActions.isEmpty()) {
-				switch(mMode) {
+			if (!mUndoActions.isEmpty()) {
+				switch (mMode) {
 					case SINGLE_UNDO:
 						mUndoActions.get(0).undo();
 						mUndoActions.clear();
 						break;
 					case COLLAPSED_UNDO:
 						Collections.reverse(mUndoActions);
-						for(Undoable undo : mUndoActions) {
-							undo.undo();	
+						for (Undoable undo : mUndoActions) {
+							undo.undo();
 						}
 						mUndoActions.clear();
 						break;
@@ -644,7 +649,7 @@ public final class SwipeDismissList implements View.OnTouchListener {
 			}
 
 			// Dismiss dialog or change text
-			if(mUndoActions.isEmpty()) {
+			if (mUndoActions.isEmpty()) {
 				mUndoPopup.dismiss();
 			} else {
 				changePopupText();
@@ -654,9 +659,9 @@ public final class SwipeDismissList implements View.OnTouchListener {
 			mDelayedMsgId++;
 
 		}
-		
+
 	}
-	
+
 	/**
 	 * Handler used to hide the undo popup after a special delay.
 	 */
@@ -664,22 +669,15 @@ public final class SwipeDismissList implements View.OnTouchListener {
 
 		@Override
 		public void handleMessage(Message msg) {
-			if(msg.what == mDelayedMsgId) {
+			if (msg.what == mDelayedMsgId) {
 				// Call discard on any element
-				for(Undoable undo : mUndoActions) {
+				for (Undoable undo : mUndoActions) {
 					undo.discard();
 				}
 				mUndoActions.clear();
 				mUndoPopup.dismiss();
 			}
 		}
-		
-	}
-	
-	/**
-	 * Enable/disable swipe.
-	 */
-	public void setSwipeDisabled(boolean disabled) {
-		this.mSwipeDisabled = disabled;
+
 	}
 }

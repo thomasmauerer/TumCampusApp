@@ -29,13 +29,11 @@ public abstract class Card {
     // Context related stuff
     Context mContext;
     LayoutInflater mInflater;
-    private String mSettings;
-
     // UI Elements
     View mCard;
     LinearLayout mLinearLayout;
     TextView mTitleView;
-    
+    private String mSettings;
     // Settings for showing this card on start page or as notification
     // Default values set for restore card, no internet card, etc.
     private boolean mShowStart = true;
@@ -289,7 +287,7 @@ public abstract class Card {
     /**
      * Interface which has to be implemented by a manager class to add cards to the stream
      */
-    public static interface ProvidesCard {
+    public interface ProvidesCard {
         /**
          * Gets called whenever cards need to be shown or refreshed.
          * This method should decide whether a card can be displayed and if so
@@ -297,6 +295,6 @@ public abstract class Card {
          *
          * @param context Context
          */
-        public void onRequestCard(Context context);
+        void onRequestCard(Context context);
     }
 }

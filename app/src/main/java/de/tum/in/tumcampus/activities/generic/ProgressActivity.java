@@ -26,6 +26,14 @@ import de.tum.in.tumcampus.auxiliary.Utils;
  */
 public abstract class ProgressActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener {
 
+    BroadcastReceiver connectivityChangeReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (NetUtils.isConnected(context)) {
+                onRefresh();
+            }
+        }
+    };
     /**
      * Default layouts for user interaction
      */
@@ -116,7 +124,7 @@ public abstract class ProgressActivity extends BaseActivity implements SwipeRefr
      * Shows no movies layout
      */
     protected void showNoMoviesLayout() {
-        showLoadingEnded();;
+        showLoadingEnded();
         noMoviesLayout.setVisibility(View.VISIBLE);
         allErrorsLayout.setVisibility(View.VISIBLE);
     }
@@ -261,13 +269,4 @@ public abstract class ProgressActivity extends BaseActivity implements SwipeRefr
         wifi.setWifiEnabled(true);
         noInternetLayout.findViewById(R.id.progressWifi).setVisibility(View.VISIBLE);
     }
-
-    BroadcastReceiver connectivityChangeReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (NetUtils.isConnected(context)) {
-                onRefresh();
-            }
-        }
-    };
 }

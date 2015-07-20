@@ -27,7 +27,6 @@ import android.support.v4.app.FragmentActivity;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.ListAdapter;
-import android.widget.Toast;
 
 import com.github.machinarius.preferencefragment.PreferenceFragment;
 
@@ -503,21 +502,20 @@ public class SettingsFragment extends PreferenceFragment implements
      * Validates a station name and retrieves its MVG staiton ID
      * This is needed, since the station selector returns the MVV station name, but we need the MVG station ID
      */
-    private class MVGStationValidator extends AsyncTask {
+    private class MVGStationValidator extends AsyncTask<Void, Void, Object> {
         String station;
 
         public MVGStationValidator(String station) {
             this.station = station;
         }
-
         @Override
-        protected Object doInBackground(Object[] params) {
+        protected Void doInBackground(Void... params) {
             int id = 0;
             try {
                 id = new MVGRequest(mContext).fetchStationId(station);
             } catch (Exception e) {
                 Utils.log(e);
-                return new Object();
+                return null;
             }
 
             // save station data

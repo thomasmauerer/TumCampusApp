@@ -26,21 +26,12 @@ import de.tum.in.tumcampus.auxiliary.NetUtils;
 
 public class ExceptionHandler {
 
+    public static boolean sVerbose = false;
     // Stores loaded stack traces in memory. Each element is contains a full stacktrace
     private static ArrayList<String[]> sStackTraces = null;
-
     private static ActivityAsyncTask<Processor, Object, Object, Object> sTask;
-    public static boolean sVerbose = false;
     private static int sMinDelay = 0;
     private static boolean sSetupCalled = false;
-
-    public static interface Processor {
-        boolean beginSubmit();
-
-        void submitDone();
-
-        void handlerInstalled();
-    }
 
     /**
      * Setup the handler for unhandled exceptions, and submit stack
@@ -396,5 +387,13 @@ public class ExceptionHandler {
             // Register our default exceptions handler
             Thread.setDefaultUncaughtExceptionHandler(new DefaultExceptionHandler(currentHandler));
         }
+    }
+
+    public interface Processor {
+        boolean beginSubmit();
+
+        void submitDone();
+
+        void handlerInstalled();
     }
 }
