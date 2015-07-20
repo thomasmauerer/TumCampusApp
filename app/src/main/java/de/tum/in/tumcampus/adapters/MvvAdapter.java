@@ -20,11 +20,7 @@ import de.tum.in.tumcampus.auxiliary.Utils;
 import de.tum.in.tumcampus.models.MVVDeparture;
 import de.tum.in.tumcampus.models.MVVObject;
 import de.tum.in.tumcampus.models.MVVSuggestion;
-import de.tum.in.tumcampus.models.MoodleCourseModule;
 
-/**
- * Created by enricogiga on 17/06/2015.
- */
 public class MvvAdapter extends BaseAdapter {
 
 
