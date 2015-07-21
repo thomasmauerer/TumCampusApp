@@ -30,14 +30,12 @@ import de.tum.in.tumcampus.models.managers.RecentsManager;
  */
 public class MVVActivity extends ActivityForSearching implements MVVDelegate, AdapterView.OnItemClickListener {
 
-    private ListView departurelist;
+    private ListView departureList;
     private TextView listHeader;
     private RecentsManager recentsManager;
 
-    // used for populating suggestion or departurelist
+    // used for populating suggestion or departureList
     private MvvAdapter dataAdapter;
-    // used for showing previuosly visited stations
-    private SimpleCursorAdapter adapterStations;
 
     public MVVActivity() {
         super(R.layout.activity_mvv_main, MVVStationSuggestionProvider.AUTHORITY, 3);
@@ -60,7 +58,7 @@ public class MVVActivity extends ActivityForSearching implements MVVDelegate, Ad
             return;
         }
         showLoadingStart();
-        ( new MVVJsoupParser(this) ).execute(new String[]{query});
+        (new MVVJsoupParser(this)).execute(query);
     }
 
     @Override
@@ -72,55 +70,41 @@ public class MVVActivity extends ActivityForSearching implements MVVDelegate, Ad
 
     @Override
     public void showSuggestionList(MVVObject sug) {
-        try {
-            listHeader.setText(R.string.mvv_suggestion_hint);
-            dataAdapter = new MvvAdapter(sug, this, this);
-            departurelist.setAdapter(dataAdapter);
-            showLoadingEnded();
-        }catch (Exception e){
-            Utils.log(e);
-            Utils.showToast(this,"Sorry something went wrong");
-        }
+        listHeader.setText(R.string.mvv_suggestion_hint);
+        dataAdapter = new MvvAdapter(sug, this, this);
+        departureList.setAdapter(dataAdapter);
+        showLoadingEnded();
     }
 
     @Override
     public void showDepartureList(MVVObject dep) {
-        try {
-            // save this departure into visited departures
-            recentsManager.replaceIntoDb(dep.getDepartureHeader().trim());
-            String stationHeader = dep.getDepartureHeader().trim() + " " + dep.getDepartureServerTime() +" Uhr";
-            listHeader.setText(stationHeader);
-            listHeader.setTypeface(null, Typeface.BOLD);
+        // save this departure into visited departures
+        recentsManager.replaceIntoDb(dep.getDepartureHeader().trim());
+        String stationHeader = dep.getDepartureHeader().trim() + " " + dep.getDepartureServerTime() + " Uhr";
+        listHeader.setText(stationHeader);
+        listHeader.setTypeface(null, Typeface.BOLD);
 
-            dataAdapter = new MvvAdapter(dep, this, this);
-            departurelist.setAdapter(dataAdapter);
-            showLoadingEnded();
-        }catch (Exception e){
-            Utils.log(e);
-            Utils.showToast(this,"Sorry something went wrong");
-        }
+        dataAdapter = new MvvAdapter(dep, this, this);
+        departureList.setAdapter(dataAdapter);
+        showLoadingEnded();
+
     }
 
     @Override
     public void showError(MVVObject object) {
         showLoadingEnded();
-        Toast.makeText(this,object.getMessage(),Toast.LENGTH_LONG).show();
+        Toast.makeText(this, object.getMessage(), Toast.LENGTH_LONG).show();
     }
 
 
-    public void baseSetup(){
-        try{
-            listHeader = (TextView)findViewById(R.id.mvv_list_header);
-            departurelist = (ListView)findViewById(R.id.mvv_details);
-            departurelist.setOnItemClickListener(this);
+    public void baseSetup() {
+        listHeader = (TextView) findViewById(R.id.mvv_list_header);
+        departureList = (ListView) findViewById(R.id.mvv_details);
+        departureList.setOnItemClickListener(this);
 
-            // get all stations from db
-            recentsManager = new RecentsManager(this, RecentsManager.STATIONS);
-            getListFromMemory();
-
-        }catch(Exception e){
-            Utils.log("something went wrong!");
-        }
+        // get all stations from db
+        recentsManager = new RecentsManager(this, RecentsManager.STATIONS);
+        getListFromMemory();
     }
 
     @Override
@@ -134,7 +118,7 @@ public class MVVActivity extends ActivityForSearching implements MVVDelegate, Ad
                 Utils.log("suggestion link is " + suggestion_url);
                 onStartSearch(suggestion_url);
             }
-        }else{
+        } else {
             Cursor departureCursor = (Cursor) parent.getAdapter().getItem(position);
             onStartSearch(departureCursor.getString(departureCursor.getColumnIndex(Const.NAME_COLUMN)));
         }
@@ -144,19 +128,19 @@ public class MVVActivity extends ActivityForSearching implements MVVDelegate, Ad
      * shows the recently visited stations on a list
      * used at the start up of the app
      */
-    private void getListFromMemory(){
+    private void getListFromMemory() {
         listHeader.setText(R.string.mvv_recent);
         listHeader.setTypeface(null, Typeface.BOLD);
         Cursor stationCursor = recentsManager.getAllFromDb();
-        adapterStations = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_1, stationCursor,
+        SimpleCursorAdapter adapterStations = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_1, stationCursor,
                 stationCursor.getColumnNames(), new int[]{android.R.id.text1}, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
-        if(adapterStations.getCount()==0) {
+        if (adapterStations.getCount() == 0) {
             // if there is no previously visited stations
             // puts the focus on the search bar
             openSearch();
         } else {
-            departurelist.setAdapter(adapterStations);
-            departurelist.requestFocus();
+            departureList.setAdapter(adapterStations);
+            departureList.requestFocus();
         }
         showLoadingEnded();
     }
