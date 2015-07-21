@@ -1,5 +1,6 @@
 package de.tum.in.tumcampus.activities;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -29,6 +30,7 @@ import de.tum.in.tumcampus.models.managers.RecentsManager;
  * Activity for searching timetables from the queried station using mvg live
  */
 public class MVVActivity extends ActivityForSearching implements MVVDelegate, AdapterView.OnItemClickListener {
+    public static final String EXTRA_STATION = "station";
 
     private ListView departureList;
     private TextView listHeader;
@@ -65,6 +67,18 @@ public class MVVActivity extends ActivityForSearching implements MVVDelegate, Ad
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         baseSetup();
+
+        //If we get called with an intent, we try to display the given station
+        Intent intent = getIntent();
+        if (intent == null) {
+            return;
+        }
+        String location = intent.getStringExtra(EXTRA_STATION);
+        if (location == null) {
+            return;
+        }
+
+        onStartSearch(location);
     }
 
 

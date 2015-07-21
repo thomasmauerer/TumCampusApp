@@ -17,7 +17,7 @@ import android.widget.TextView;
 import java.util.List;
 
 import de.tum.in.tumcampus.R;
-import de.tum.in.tumcampus.activities.TransportationDetailsActivity;
+import de.tum.in.tumcampus.activities.MVVActivity;
 import de.tum.in.tumcampus.auxiliary.DepartureView;
 import de.tum.in.tumcampus.models.managers.TransportManager;
 
@@ -69,8 +69,8 @@ public class MVVCard extends Card {
 
     @Override
     public Intent getIntent() {
-        Intent i = new Intent(mContext, TransportationDetailsActivity.class);
-        i.putExtra(TransportationDetailsActivity.EXTRA_STATION, mStationName);
+        Intent i = new Intent(mContext, MVVActivity.class);
+        i.putExtra(MVVActivity.EXTRA_STATION, mStationName);
         return i;
     }
 
