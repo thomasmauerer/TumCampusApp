@@ -6,3 +6,4 @@ build/
 libraries/emojicon/build/
 libraries/emojicon/emojicon.iml
 app/app-release.apk
+app/app.iml
