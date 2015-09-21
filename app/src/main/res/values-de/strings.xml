@@ -75,6 +75,9 @@
     <string name="silence_phone_info">Das Gerät wird während einer Vorlesung automatisch in den lautlosen Modus gestellt.</string>
     <string name="background_mode">Hintergrund Modus (Empfohlen)</string>
     <string name="background_info">Aktualisiert die Inhalte der App einmal täglich, um dich auf dem neusten Stand zu halten, sogar wenn die App nicht geöffnet ist.</string>
+    <string name="mode_background_mode">Aktivierung des Hintergrund Modus</string>
+    <string name="always">Immer</string>
+    <string name="wifi_only">Nur bei WLAN-Verbindung</string>
     <string name="demo_mode">In-App-Tutorial</string>
     <string name="demo_info">Hilfemodus aktivieren, um Informationen zur Bedienung der App zu erhalten.</string>
 
@@ -103,6 +106,16 @@
     <!-- News -->
     <string name="no_link_existing">Kein Link gefunden.</string>
     <string name="info_title">Neuigkeiten:</string>
+
+    <!-- Kino -->
+    <string name="imdb_rating">IMDB-Rating</string>
+    <string name="year">Erscheinungsjahr</string>
+    <string name="runtime">Laufzeit</string>
+    <string name="genre">Genre</string>
+    <string name="director">Regisseur</string>
+    <string name="actors">Schauspieler</string>
+    <string name="description">Beschreibung</string>
+    <string name="no_movies">Zur Zeit gibt es keine Filme.</string>
 
     <!-- Navigation drawer -->
     <string name="drawer_open">Öffnen</string>
@@ -266,7 +279,6 @@
     <string name="card_tuition_fee_summary">Erinnert dich wenn du die Studiengebühren zahlen musst</string>
     <string name="card_news_summary">Schlägt ausgewählte News vor</string>
     <string name="card_chat_summary">Benachrichtigt dich wenn neue Nachrichten verfügbar sind</string>
-    <string name="chat">Chat</string>
     <string name="open_card_settings">Karte anpassen</string>
     <string name="always_hide_card">Karte immer ausblenden</string>
     <string name="options">Optionen</string>
@@ -278,7 +290,6 @@
     <string name="closed">Geschlossen</string>
 
     <!-- Eduroam card -->
-    <string name="eduroam">Eduroam</string>
     <string name="setup">Einrichten</string>
     <string name="setup_eduroam">Eduroam einrichten</string>
     <string name="password">Passwort</string>
@@ -289,7 +300,7 @@
     <string name="pin_lock">PIN-Sperre</string>
     <string name="pin_lock_desc">Für die Einrichtung des WLAN-Zugangs wird eine PIN-Sperre benötigt.
         Falls du noch keine PIN-Sperre verwendet kannst du hier eine einrichten.
-    <a href="http://www.tum.de/index.php?id=1821&amp;tx_ttnews%5Btt_news%5D=31688">Mehr Infos</a></string>
+    <a href="https://www.tum.de/index.php?id=1821&amp;tx_ttnews%5Btt_news%5D=31688">Mehr Infos</a></string>
     <string name="enable_pin_lock">PIN-Sperre aktivieren</string>
     <string name="data_backup">Daten-Backup</string>
     <string name="data_backup_desc">Aus Sicherheitsgründen muss das Daten-Backup deaktiviert werden, damit die LRZ-Zugangsdaten nicht unverschlüsselt auf den Google Servern gespeichert werden.
@@ -325,7 +336,7 @@
     <string name="error_setup_chat_member">Etwas stimmt nicht mit deiner Chat Registrierung!</string>
     <string name="room_timetable">Belegungsplan</string>
     <string name="newspread_summary">Wähle aus welches newspread angezeigt werden soll. Das sind die Folien die auf den Info Monitoren in deiner Fakultät angezeigt werden.</string>
-    <string name="tuition_fee_more">Informationen zu Beiträgen und Befreiungen, Darlehen, BAföG oder Stipendien finden Sie unter: <a href="http://www.tum.de/studium/studienfinanzierung/">Studienfinanzierung</a></string>
+    <string name="tuition_fee_more">Informationen zu Beiträgen und Befreiungen, Darlehen, BAföG oder Stipendien finden Sie unter: <a href="https://www.tum.de/studium/studienfinanzierung/">Studienfinanzierung</a></string>
     <string name="no_rights_to_access_id">Identität konnte nicht abgefragt werden. Bitte überprüfe die Rechte deines TUMOnline Tokens!</string>
     <string name="vibration">Vibration</string>
     <string name="silent">Leise</string>
@@ -367,4 +378,9 @@ Signatur: %5$s</string>
     <string name="yesterday">Gestern</string>
     <string name="semester_summer">Sommersemester</string>
     <string name="semester_winter">Wintersemester</string>
+    <string name="support_us">Hilf und die TUM Campus App besser zu machen! Gib\' und ein \'Gefällt mir\' auf Facebook, schlag\' uns neue Ideen auf Github vor oder sag\' uns deine Meinung per E-Mail!</string>
+    <string name="support_us_title">Unterstütze uns!</string>
+    <string name="permission_calendar_explanation">Diese App braucht die Erlaubnis auf deinen Standort zugreifen zu können um nützliche Informationen, zum Beispiel zum Anzeigen der Mensa Speisepläne in deiner nähe oder von Fahrplänen der nächstgelegenen MVV Station. \n Wenn du das nicht willst, kannst du deinen Standort in den Einstellungen konfigurieren.</string>
+    <string name="permission_location_explanation">Diese App braucht die Erlaubnis auf deinen Kalender zuzugreifen, um sie diesen mit deinem TUM-Kalender abzugleichen.</string>
+    <string name="ok">OK</string>
 </resources>

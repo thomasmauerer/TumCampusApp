@@ -2,8 +2,6 @@
 local.properties
 .idea/
 .DS_Store
-build/
-libraries/emojicon/build/
-libraries/emojicon/emojicon.iml
+/build
 app/app-release.apk
-app/app.iml
+*.iml

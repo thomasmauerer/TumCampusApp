@@ -42,23 +42,24 @@ public class TUMRoomFinderRequest {
     public static final String KEY_ROOM_TITLE = "roomTitle";
     public static final String KEY_BUILDING_ID = "buildingId";
     /**
+     * a list/map for the needed parameters
+     */
+    private final Map<String, String> parameters;
+    private static final String SERVICE_BASE_URL = "http://vmbaumgarten3.informatik.tu-muenchen.de/";
+    /**
      * asynchronous task for interactive fetch
      */
     private AsyncTask<String, Void, ArrayList<HashMap<String, String>>> backgroundTask = null;
-
     /**
      * method to call
      */
     private String method = null;
-    /**
-     * a list/map for the needed parameters
-     */
-    private final Map<String, String> parameters;
-    private final String SERVICE_BASE_URL = "http://vmbaumgarten3.informatik.tu-muenchen.de/";
+    private NetUtils mNetUtils;
 
-    public TUMRoomFinderRequest() {
+    public TUMRoomFinderRequest(Context context) {
         parameters = new HashMap<>();
         method = "search";
+        mNetUtils = new NetUtils(context);
     }
 
     public void cancelRequest(boolean mayInterruptIfRunning) {
@@ -84,9 +85,7 @@ public class TUMRoomFinderRequest {
         Utils.log("fetching URL " + url);
 
         try {
-
-            XMLParser parser = new XMLParser();
-            String xml = parser.getXmlFromUrl(url); // getting XML from URL
+            String xml = mNetUtils.downloadStringHttp(url); // getting XML from URL
             if(xml.contains("<error>")) {
                 Utils.logv("Room location not found!");
                 setParameter("id", roomId.substring(roomId.indexOf('@') + 1));
@@ -94,16 +93,15 @@ public class TUMRoomFinderRequest {
                 url = getRequestURL(SERVICE_BASE_URL + "roommaps/building/");
                 Utils.log("fetching URL " + url);
 
-                parser = new XMLParser();
-                xml = parser.getXmlFromUrl(url); // getting XML from URL
+                xml = mNetUtils.downloadStringHttp(url); // getting XML from URL
             }
 
-            Document doc = parser.getDomElement(xml); // getting DOM element
+            Document doc = XMLParser.getDomElement(xml); // getting DOM element
 
             Element location = doc.getDocumentElement();
-            double zone = Double.parseDouble(parser.getValue(location, "utm_zone"));
-            double easting = Double.parseDouble(parser.getValue(location, "utm_easting"));
-            double north = Double.parseDouble(parser.getValue(location, "utm_northing"));
+            double zone = Double.parseDouble(XMLParser.getValue(location, "utm_zone"));
+            double easting = Double.parseDouble(XMLParser.getValue(location, "utm_easting"));
+            double north = Double.parseDouble(XMLParser.getValue(location, "utm_northing"));
 
             return UTMtoLL(north, easting, zone);
         } catch (NumberFormatException e) {
@@ -132,10 +130,8 @@ public class TUMRoomFinderRequest {
         Utils.log("fetching URL " + url);
 
         try {
-
-            XMLParser parser = new XMLParser();
-            String xml = parser.getXmlFromUrl(url); // getting XML from URL
-            Document doc = parser.getDomElement(xml); // getting DOM element
+            String xml = mNetUtils.downloadStringHttp(url); // getting XML from URL
+            Document doc = XMLParser.getDomElement(xml); // getting DOM element
 
             NodeList roomList = doc.getElementsByTagName("room");
 
@@ -149,11 +145,11 @@ public class TUMRoomFinderRequest {
 
                 Element campus = (Element) building.getParentNode();
                 roomMap.put(KEY_CAMPUS_ID, campus.getAttribute("id"));
-                roomMap.put(KEY_CAMPUS_TITLE, parser.getValue(campus, KEY_TITLE));
-                roomMap.put(KEY_BUILDING_TITLE, parser.getValue(building, KEY_TITLE));
-                roomMap.put(KEY_ROOM_TITLE, parser.getValue(room, KEY_TITLE));
+                roomMap.put(KEY_CAMPUS_TITLE, XMLParser.getValue(campus, KEY_TITLE));
+                roomMap.put(KEY_BUILDING_TITLE, XMLParser.getValue(building, KEY_TITLE));
+                roomMap.put(KEY_ROOM_TITLE, XMLParser.getValue(room, KEY_TITLE));
                 roomMap.put(KEY_BUILDING_ID, buildingId);
-                roomMap.put(KEY_ARCHITECT_NUMBER, parser.getValue(room, KEY_ARCHITECT_NUMBER));
+                roomMap.put(KEY_ARCHITECT_NUMBER, XMLParser.getValue(room, KEY_ARCHITECT_NUMBER));
                 roomMap.put(KEY_ROOM_API_CODE, room.getAttribute("api_code"));
 
                 // adding HashList to ArrayList
@@ -177,14 +173,12 @@ public class TUMRoomFinderRequest {
         String result = null;
 
         try {
-
-            XMLParser parser = new XMLParser();
-            String xml = parser.getXmlFromUrl(url); // getting XML from URL
-            Document doc = parser.getDomElement(xml); // getting DOM element
+            String xml = mNetUtils.downloadStringHttp(url); // getting XML from URL
+            Document doc = XMLParser.getDomElement(xml); // getting DOM element
 
             NodeList defaultMapIdList = doc.getElementsByTagName("mapId");
             Element defaultMapId = (Element) defaultMapIdList.item(0);
-            result = parser.getElementValue(defaultMapId);
+            result = XMLParser.getElementValue(defaultMapId);
             if (result.equals(""))
                 result = "10";// default room for unknown buildings
 
@@ -205,22 +199,20 @@ public class TUMRoomFinderRequest {
         ArrayList<HashMap<String, String>> mapsList = new ArrayList<>();
 
         try {
-
-            XMLParser parser = new XMLParser();
-            String xml = parser.getXmlFromUrl(url); // getting XML from URL
-            Document doc = parser.getDomElement(xml); // getting DOM element
+            String xml = mNetUtils.downloadStringHttp(url); // getting XML from URL
+            Document doc = XMLParser.getDomElement(xml); // getting DOM element
 
             NodeList roomList = doc.getElementsByTagName("map");// building.getChildNodes();
 
             for (int k = 0; k < roomList.getLength(); k++) {
                 Element map = (Element) roomList.item(k);
-                int scale = Integer.parseInt(parser.getValue(map, "scaling"));
+                int scale = Integer.parseInt(XMLParser.getValue(map, "scaling"));
                 if(scale>400000)
                     continue;
 
                 HashMap<String, String> mapMap = new HashMap<>();
-                mapMap.put(KEY_MAP_ID, parser.getValue(map, "id"));
-                mapMap.put(KEY_TITLE, parser.getValue(map, "description"));
+                mapMap.put(KEY_MAP_ID, XMLParser.getValue(map, "id"));
+                mapMap.put(KEY_TITLE, XMLParser.getValue(map, "description"));
 
                 // adding HashList to ArrayList
                 mapsList.add(mapMap);
@@ -247,20 +239,18 @@ public class TUMRoomFinderRequest {
         Utils.log("fetching Map URL " + url);
 
         try {
-
-            XMLParser parser = new XMLParser();
-            String xml = parser.getXmlFromUrl(url); // getting XML from URL
-            Document doc = parser.getDomElement(xml); // getting DOM element
+            String xml = mNetUtils.downloadStringHttp(url); // getting XML from URL
+            Document doc = XMLParser.getDomElement(xml); // getting DOM element
 
             NodeList scheduleNodes = doc.getElementsByTagName("event");
 
             for (int k = 0; k < scheduleNodes.getLength(); k++) {
                 Element schedule = (Element) scheduleNodes.item(k);
                 Event event = Event.newInstance();
-                event.id = Long.parseLong(parser.getValue(schedule, "eventID"));
-                event.title = parser.getValue(schedule, "title");
-                String start = parser.getValue(schedule, "begin_time");
-                String end = parser.getValue(schedule, "end_time");
+                event.id = Long.parseLong(XMLParser.getValue(schedule, "eventID"));
+                event.title = XMLParser.getValue(schedule, "title");
+                String start = XMLParser.getValue(schedule, "begin_time");
+                String end = XMLParser.getValue(schedule, "end_time");
                 event.setStart(Utils.getISODateTime(start));
                 event.setEnd(Utils.getISODateTime(end));
                 event.color = Event.getDisplayColorFromColor(0xff28921f);
@@ -362,7 +352,7 @@ public class TUMRoomFinderRequest {
     /**
      * Converts UTM based coordinates to latitude and longitude based format
      */
-    private Geo UTMtoLL(double north, double east, double zone) {
+    private static Geo UTMtoLL(double north, double east, double zone) {
         double d = 0.99960000000000004;
         double d1 = 6378137;
         double d2 = 0.0066943799999999998;

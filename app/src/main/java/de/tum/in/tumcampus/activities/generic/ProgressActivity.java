@@ -95,7 +95,7 @@ public abstract class ProgressActivity extends BaseActivity implements SwipeRefr
      * @param errorReason Error text
      */
     protected void showError(String errorReason) {
-        TextView error = (TextView) errorLayout.findViewById(R.id.textView1);
+        TextView error = (TextView) errorLayout.findViewById(R.id.error_text);
         error.setText(errorReason);
         showErrorLayout();
     }
@@ -107,6 +107,18 @@ public abstract class ProgressActivity extends BaseActivity implements SwipeRefr
     protected void showErrorLayout() {
         showLoadingEnded();
         errorLayout.setVisibility(View.VISIBLE);
+        allErrorsLayout.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Shows custom error layout.
+     * Hides any progress indicator.
+     *
+     * @param customErrorLayout Error layout
+     */
+    protected void showCustomErrorLayout(RelativeLayout customErrorLayout) {
+        showLoadingEnded();
+        customErrorLayout.setVisibility(View.VISIBLE);
         allErrorsLayout.setVisibility(View.VISIBLE);
     }
 

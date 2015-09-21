@@ -63,7 +63,8 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:logo="@drawable/tum_logo"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:fullBackupContent="true">
 
         <meta-data
             android:name="com.google.android.gms.version"
@@ -291,6 +292,16 @@
                 android:value="de.tum.in.tumcampus.activities.MainActivity" />
         </activity>
         <activity
+            android:name=".activities.KinoActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/kino"
+            android:launchMode="singleTop"
+            android:parentActivityName=".activities.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="de.tum.in.tumcampus.activities.MainActivity" />
+        </activity>
+        <activity
             android:name="de.tum.in.tumcampus.activities.PersonsSearchActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/person_search"
@@ -340,7 +351,7 @@
             android:parentActivityName=".activities.RoomFinderActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="de.tum.in.tumcampus.activities.RoomfinderActivity" />
+                android:value="de.tum.in.tumcampus.activities.RoomFinderActivity" />
         </activity>
         <activity
             android:name="de.tum.in.tumcampus.activities.TuitionFeesActivity"
